@@ -185,16 +185,10 @@ def group_test_relative(group_start, length, Data, Label, model, record):
         edge_set = [-1 for i in range(length)]
         for t in range(length):
             if j != t:
-                if handle_type == 'extend':
-                    temd = handle_data.data_extend(Data[group_start + j], Data[group_start + t])
-                    temi = handle_data.data_extend(Data[group_start + t], Data[group_start + j])
-                # else:
-                #     temd = data_diff(Data[group_start + j], Data[group_start + t])
-                #     temi = data_diff(Data[group_start + t], Data[group_start + j])
+                temd = handle_data.data_extend(Data[group_start + j], Data[group_start + t])
+                temi = handle_data.data_extend(Data[group_start + t], Data[group_start + j])
                 temd = np.array(temd).reshape((1, -1))
                 temi = np.array(temi).reshape((1, -1))
-                # print(model.predict_proba(temd))
-                # print(model.predict_proba(temi))
                 if model.predict(temd) > 0:
                     edge_set[t] = 1
                     record.write(f'{j+1:2d}\t{t+1:2d}\t 1\t')

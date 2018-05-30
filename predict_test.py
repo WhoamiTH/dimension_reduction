@@ -56,6 +56,13 @@ def general_test(test_data, test_label, model, positive_value, negative_value, t
     general_tp, general_fp, general_fn = count_general_pre(test_label, general_predict, positive_value, negative_value, threshold_value)
     general_precision, general_recall = precision_recall(general_tp, general_fp, general_fn)
     general_accuracy = (len(test_label) - general_fp - general_fn) / len(test_label)
+    # --------------------------------------------------------------------
+    record.write(f"the general true positive is {general_tp}\n")
+    record.write(f"the general false positive is {general_fp}\n")
+    record.write(f"the general false negative is {general_fn}\n")
+    general_tn = len(test_label) - general_fp - general_fn - general_tp
+    record.write(f"the general true negative is {general_tn}\n")
+    # --------------------------------------------------------------------
     record.write(f"the general precision is {general_precision}\n")
     record.write(f"the general recall is {general_recall}\n")
     record.write(f"the general accuracy is {general_accuracy}\n")
@@ -63,7 +70,7 @@ def general_test(test_data, test_label, model, positive_value, negative_value, t
 
 
 def record_middle_result(name, list, record):
-    record.write(name + ' is ')
+    record.write(name)
     for i in list:
         record.write(f'{i:2d}\t')
     record.write('\n')
@@ -93,20 +100,49 @@ def rank_the_group(group_data, reference, model, threshold, record):
     return high + low
 
 
-def record_rank_reference(rank, reference, record):
-    record.write("                      ")
-    for m in range(1,len(rank)+1):
-        record.write(f"{m:2d}\t")
-    record.write("\n")
-    record.write("the true rank is      ")
-    for i in rank:
-        record.write(f"{int(i):2d}\t")
-    record.write("\n")
-    record.write("the predict rank is   ")
-    for t in reference:
-        record.write(f"{int(t):2d}\t")
-    record.write("\n")
+def record_rank_reference(reference, rank, predict_rank, record):
+    t = [i for i in range(1,len(rank)+1)]
+    record_middle_result('                      ', t, record)
+    record_middle_result('the random order is   ', reference, record)
+    record_middle_result('the true rank is      ', rank, record)
+    record_middle_result('the predict rank is   ', predict_rank, record)
 
+def group_test_relative(group_data, group_label, length, model, threshold_value, record):
+    graph = []
+    for j in range(length):
+        edge_set = [-1 for i in range(length)]
+        for t in range(length):
+            if j != t:
+                temd = handle_data.data_extend(group_data[j], group_data[t])
+                temi = handle_data.data_extend(group_data[t], group_data[j])
+                temd = np.array(temd).reshape((1, -1))
+                temi = np.array(temi).reshape((1, -1))
+                if model.predict(temd) > threshold_value:
+                    edge_set[t] = 1
+                    rtd = 1
+                    record.write(f'{j+1:2d}\t{t+1:2d}\t 1({model.predict_proba(temd)})\t')
+                else:
+                    rtd = 0
+                    record.write(f'{j+1:2d}\t{t+1:2d}\t-1({model.predict_proba(temd)})\t')
+                if group_label[j] > group_label[t]:
+                    record.write('-1\n')
+                else:
+                    record.write('1\n')
+                if model.predict(temi) > threshold_value:
+                    rti = 1
+                    record.write(f'{t+1:2d}\t{j+1:2d}\t 1({model.predict_proba(temi)})\t')
+                else:
+                    rti = 0
+                    record.write(f'{t+1:2d}\t{j+1:2d}\t-1({model.predict_proba(temi)})\t')
+                if group_label[t] > group_label[j]:
+                    record.write('-1\n')
+                    record.write('---------------------------------------\n')
+                else:
+                    record.write('1\n')
+                    record.write('---------------------------------------\n')
+                if rtd == rti:
+                    record.write('there is a conflict!!!!!!!!!!!!!!!!!!!!\n')
+        graph.append(edge_set)
 
 def group_test(Data, Label, Ds, Dl, train_index_start, num_of_train, model, threshold_value, top, all_group_top_precision, all_group_top_exact_accuracy, all_group_exact_accuracy, record):
     for group_index_start in range(len(Ds)):
@@ -122,12 +158,15 @@ def group_test(Data, Label, Ds, Dl, train_index_start, num_of_train, model, thre
         group_label = Label[group_start:group_end]
         reference = [t for t in range(1, length + 1)]
         random.shuffle(reference)
-        record_middle_result('the random order', reference, record)
-        reference = rank_the_group(group_data, reference, model, threshold_value, record)
+        predict_rank = rank_the_group(group_data, reference, model, threshold_value, record)
         group_rank = handle_data.exchange(group_label)
-        record_rank_reference(group_rank,reference,record)
-        group_top_precision, group_top_exact_accuracy = count_top(group_rank, reference, top)
-        group_exact_accuracy = calacc(group_rank, reference)
+        reference = [t for t in range(1, length + 1)]
+        record_rank_reference(reference, group_rank, predict_rank, record)
+        # --------------------------------------------------------------------
+        # group_test_relative(group_data, group_label, length, model, threshold_value, record)
+        # --------------------------------------------------------------------
+        group_top_precision, group_top_exact_accuracy = count_top(group_rank, predict_rank, top)
+        group_exact_accuracy = calacc(group_rank, predict_rank)
         all_group_top_precision.append(group_top_precision)
         all_group_top_exact_accuracy.append(group_top_exact_accuracy)
         all_group_exact_accuracy.append(group_exact_accuracy)

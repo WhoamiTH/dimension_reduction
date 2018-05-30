@@ -35,6 +35,7 @@ def crossvalidation(percent, Ds, Dl, Data, Label, record):
         new_data = handle_data.standarize_PCA_data(train_x,Data,pca_or_not,num_of_components)
         train_data,train_label,test_data,test_label= handle_data.generate_all_data(Ds, Dl, new_data, Label, train_index_start, num_of_train, mirror_type, positive_value, negative_value)
         model,training_time = train_model(train_data, train_label)
+        finish = clock()
         print(model)
         record.write(f"{str(model)}\n")
         record.write("-------------------------------------------------------------------------------------------\n")
@@ -42,7 +43,6 @@ def crossvalidation(percent, Ds, Dl, Data, Label, record):
         all_group_top_precision, all_group_top_exact_accuracy, all_group_exact_accuracy = \
             predict_test.group_test(new_data, Label, Ds, Dl, train_index_start, num_of_train, model, threshold_value,
                                     top, all_group_top_precision, all_group_top_exact_accuracy, all_group_exact_accuracy, record)
-        finish = clock()
         running_time = finish-start
         predict_test.cal_average(all_group_top_precision, all_group_top_exact_accuracy, all_group_exact_accuracy, record)
         record.write(f"the {i+1} time training time is {training_time}\n")
@@ -54,8 +54,8 @@ def crossvalidation(percent, Ds, Dl, Data, Label, record):
 file_name = 'GData_test_800.csv'
 delete_list = [1,2,7,15,17,19,23]
 divide_list = [0,8,9,12,13,20,22]
-model_type = 'LR'
-# model_type = 'SVC'
+# model_type = 'LR'
+model_type = 'SVC'
 # mirror_type = "mirror"
 mirror_type = "not_mirror"
 path = model_type + '_' + mirror_type + '_result_percent_'
