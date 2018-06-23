@@ -2,6 +2,7 @@ import numpy as np
 import random
 import sklearn.preprocessing as skpre
 from sklearn.decomposition import PCA
+from sklearn.decomposition import KernelPCA
 
 
 def loadData(file_name):
@@ -83,11 +84,16 @@ def data_extend(Data_1, Data_2):
     n = list(Data_2)
     return m + n
 
-
-def condense_data(Data, num_of_components):
+def condense_data_pca(Data, num_of_components):
     pca = PCA(n_components=num_of_components)
     pca.fit(Data)
     return pca
+
+
+def condense_data_kernel_pca(Data, num_of_components):
+    kernelpca = KernelPCA(n_components=num_of_components)
+    kernelpca.fit(Data)
+    return kernelpca
 
 
 def standardize_data(Data):
@@ -96,17 +102,21 @@ def standardize_data(Data):
     return scaler
 
 
-def standarize_PCA_data(train_data, Data, pca_or_not, num_of_components):
+def standarize_PCA_data(train_data, Data, pca_or_not, kernelpca_or_not, num_of_components):
     scaler = standardize_data(Data)
     if pca_or_not :
         new_data = scaler.transform(train_data)
-        pca = condense_data(new_data, num_of_components)
+        pca = condense_data_pca(new_data, num_of_components)
         new_data = scaler.transform(Data)
         new_data = pca.transform(new_data)
+    elif kernelpca_or_not :
+        new_data = scaler.transform(train_data)
+        kernelpca = condense_data_kernel_pca(new_data, num_of_components)
+        new_data = scaler.transform(Data)
+        new_data = kernelpca.transform(new_data)
     else:
         new_data = scaler.transform(Data)
     return new_data
-
 
 def exchange(test_y):
     ex_ty_list = []

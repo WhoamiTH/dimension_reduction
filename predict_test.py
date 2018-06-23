@@ -57,22 +57,22 @@ def general_test(test_data, test_label, model, positive_value, negative_value, t
     general_precision, general_recall = precision_recall(general_tp, general_fp, general_fn)
     general_accuracy = (len(test_label) - general_fp - general_fn) / len(test_label)
     # --------------------------------------------------------------------
-    record.write(f"the general true positive is {general_tp}\n")
-    record.write(f"the general false positive is {general_fp}\n")
-    record.write(f"the general false negative is {general_fn}\n")
+    record.write("the general true positive is {0}\n".format(general_tp))
+    record.write("the general false positive is {0}\n".format(general_fp))
+    record.write("the general false negative is {0}\n".format(general_fn))
     general_tn = len(test_label) - general_fp - general_fn - general_tp
-    record.write(f"the general true negative is {general_tn}\n")
+    record.write("the general true negative is {0}\n".format(general_tn))
     # --------------------------------------------------------------------
-    record.write(f"the general precision is {general_precision}\n")
-    record.write(f"the general recall is {general_recall}\n")
-    record.write(f"the general accuracy is {general_accuracy}\n")
+    record.write("the general precision is {0}\n".format(general_precision))
+    record.write("the general recall is {0}\n".format(general_recall))
+    record.write("the general accuracy is {0}\n".format(general_accuracy))
     record.write("-------------------------------------------------------------------------------------------\n")
 
 
 def record_middle_result(name, list, record):
     record.write(name)
     for i in list:
-        record.write(f'{i:2d}\t')
+        record.write("{0:2d}\t".format(i))
     record.write('\n')
 
 
@@ -87,7 +87,7 @@ def rank_the_group(group_data, reference, model, threshold, record):
         reference.remove(pivot)
         for i in reference:
             t = handle_data.data_extend(group_data[pivot-1], group_data[i-1])
-            t = np.array(t).reshape((1,-1))
+
             if model.predict(t) > threshold:
                 low.append(i)
             else:
@@ -107,42 +107,6 @@ def record_rank_reference(reference, rank, predict_rank, record):
     record_middle_result('the true rank is      ', rank, record)
     record_middle_result('the predict rank is   ', predict_rank, record)
 
-def group_test_relative(group_data, group_label, length, model, threshold_value, record):
-    graph = []
-    for j in range(length):
-        edge_set = [-1 for i in range(length)]
-        for t in range(length):
-            if j != t:
-                temd = handle_data.data_extend(group_data[j], group_data[t])
-                temi = handle_data.data_extend(group_data[t], group_data[j])
-                temd = np.array(temd).reshape((1, -1))
-                temi = np.array(temi).reshape((1, -1))
-                if model.predict(temd) > threshold_value:
-                    edge_set[t] = 1
-                    rtd = 1
-                    record.write(f'{j+1:2d}\t{t+1:2d}\t 1({model.predict_proba(temd)})\t')
-                else:
-                    rtd = 0
-                    record.write(f'{j+1:2d}\t{t+1:2d}\t-1({model.predict_proba(temd)})\t')
-                if group_label[j] > group_label[t]:
-                    record.write('-1\n')
-                else:
-                    record.write('1\n')
-                if model.predict(temi) > threshold_value:
-                    rti = 1
-                    record.write(f'{t+1:2d}\t{j+1:2d}\t 1({model.predict_proba(temi)})\t')
-                else:
-                    rti = 0
-                    record.write(f'{t+1:2d}\t{j+1:2d}\t-1({model.predict_proba(temi)})\t')
-                if group_label[t] > group_label[j]:
-                    record.write('-1\n')
-                    record.write('---------------------------------------\n')
-                else:
-                    record.write('1\n')
-                    record.write('---------------------------------------\n')
-                if rtd == rti:
-                    record.write('there is a conflict!!!!!!!!!!!!!!!!!!!!\n')
-        graph.append(edge_set)
 
 def group_test(Data, Label, Ds, Dl, train_index_start, num_of_train, model, threshold_value, top, all_group_top_precision, all_group_top_exact_accuracy, all_group_exact_accuracy, record):
     for group_index_start in range(len(Ds)):
@@ -170,9 +134,9 @@ def group_test(Data, Label, Ds, Dl, train_index_start, num_of_train, model, thre
         all_group_top_precision.append(group_top_precision)
         all_group_top_exact_accuracy.append(group_top_exact_accuracy)
         all_group_exact_accuracy.append(group_exact_accuracy)
-        record.write(f"the group top precision is {group_top_precision}\n")
-        record.write(f"the group top exact accuracy is {group_top_exact_accuracy} \n")
-        record.write(f"the group accuracy is {group_exact_accuracy}\n")
+        record.write("the group top precision is {0}\n".format(group_top_precision))
+        record.write("the group top exact accuracy is {0}\n".format(group_top_exact_accuracy))
+        record.write("the group accuracy is {0}\n".format(group_exact_accuracy))
         record.write("-------------------------------------------------------------------------------------------\n")
     return all_group_top_precision, all_group_top_exact_accuracy, all_group_exact_accuracy
 
@@ -182,8 +146,8 @@ def cal_average(all_group_top_precision, all_group_top_exact_accuracy, all_group
     average_group_top_precision = sum(all_group_top_precision)/totle
     average_group_top_exact_accuracy = sum(all_group_top_exact_accuracy)/totle
     average_group_accuracy = sum(all_group_accuracy)/totle
-    record.write(f"\nthe average group top precision is {average_group_top_precision}\n")
-    record.write(f"the average group top exact accuracy is {average_group_top_exact_accuracy}\n")
-    record.write(f"the average group accuracy is {average_group_accuracy}\n")
+    record.write("\nthe average group top precision is {0}\n".format(average_group_top_precision))
+    record.write("the average group top exact accuracy is {0}\n".format(average_group_top_exact_accuracy))
+    record.write("the average group accuracy is {0}\n".format(average_group_accuracy))
     record.write("-------------------------------------------------------------------------------------------\n\n")
 
